@@ -152,6 +152,8 @@
     .badge-system { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-dim); }
     .badge-custom { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
     .badge-architect { background: rgba(236, 72, 153, 0.2); color: #f9a8d4; border: 1px solid rgba(236, 72, 153, 0.3); }
+    .badge-engineer { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .badge-coder { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.3); }
 
     .model-name { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
     .model-description { color: var(--fg-muted); font-size: 0.9375rem; margin-bottom: 1.5rem; line-height: 1.5; }
@@ -292,19 +294,41 @@
         }
       },
       // Future models added here — run generate_model.py to rebuild
-    ];
+            {
+              id: "coder",
+              name: "Coder",
+              description: "Senior full-stack engineer — writes, reviews, and refactors code. Implements features, fixes bugs, maintains code quality. Specializes in asynchronous web architectures, LLM integration, API design, and developer tooling.",
+              type: "coder",
+              is_system: true,
+              endpoints: ["/v1/models", "/v1/chat/endpoints", "/v1/models/{model}"],
+              patterns: ["Rate Limiter", "Bulkhead", "Circuit Breaker"],
+              tags: ["full-stack", "async-arch", "llm-integration", "api-design", "devops", "testing", "refactoring"],
+              created: "2026-11-06",
+              generated_by: {
+                model: "nvidia/nemotron-3-ultra-550b-a55b",
+                provider: "nvidia",
+                date: "2026-11-06",
+                profile: "coder"
+              },
+              badge: {
+                class: "badge-coder",
+                label: "Coder"
+              }
+            }
+          ];
 
-    // Initialize on DOM ready
+          // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', () => {
       renderModels();
       updateStats();
     });
 
     // Badge mapping for model types — auto-updated by generate_model.py
-const BADGE_MAP = {
-      architect: { class: "badge-architect", label: "Architect" },
-      engineer: { class: "badge-engineer", label: "Engineer" }
-    };
+    const BADGE_MAP = {
+          architect: { class: "badge-architect", label: "Architect" },
+          engineer: { class: "badge-engineer", label: "Engineer" },
+          coder: { class: "badge-coder", label: "Coder" }
+        };
 
     function renderModels() {
       const grid = document.getElementById('model-grid');
