@@ -326,7 +326,7 @@ const BADGE_MAP = {
       }
 
       grid.innerHTML = MODEL_REGISTRY.map((model, index) => `
-        <a href="/models/${model.id}/" class="model-card" role="listitem" style="--i: ${index}" aria-label="Open ${model.name} demo">
+        <a href="models/${model.id}/" class="model-card" role="listitem" style="--i: ${index}" aria-label="Open ${model.name} demo">
           <div class="card-header">
             <div class="model-avatar ${model.type}">${model.id.slice(0, 2).toUpperCase()}</div>
             <div class="model-badges">
