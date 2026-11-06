@@ -352,33 +352,39 @@ class TestModelSite:
 
 ## CI/CD Pipeline
 
-### GitHub Actions (`.github/workflows/ci.yml`)
+### GitHub Actions (`.github/workflows/static.yml`)
 
 ```yaml
-name: CI
-on: [push, pull_request]
+name: Deploy static content to Pages
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 jobs:
-  test:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    container:
-      image: python:3.12-slim
     steps:
-      - uses: actions/checkout@v4
-      - name: Install deps
-        run: |
-          apt-get update && apt-get install -y libnss3 libnspr4 libatk1.0-0 ...
-          pip install pytest pytest-playwright pyyaml
-          playwright install --with-deps chromium
-      - name: Start server
-        run: cd public && python -m http.server 8765 & sleep 2
-      - name: Run tests
-        run: pytest tests/ -v --base-url=http://localhost:8765
-      - name: Deploy to Pages
-        if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          path: './public'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
 ```
 
 ---
