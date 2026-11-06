@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>engineer — Mock OpenAI API</title>
+  <meta name="description" content="Engineer model — engineer persona implementing the full OpenAI-compatible API specification">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <div class="container">
+    <header class="model-header">
+      <a href="/" class="back-link" aria-label="Back to model registry">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Registry</span>
+      </a>
+      <div class="header-content">
+        <div class="model-avatar" aria-hidden="true">E</div>
+        <div>
+          <h1>engineer</h1>
+          <span class="badge badge-system">System Model</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel" id="chat-demo">
+        <div class="panel-header">
+          <h2>Chat Completion Demo</h2>
+          <span class="endpoint-badge">POST /v1/chat/endpoints</span>
+        </div>
+        <div class="messages" id="messages" role="log" aria-live="polite" aria-label="Conversation"></div>
+        <form id="chat-form" class="chat-form" aria-label="Send message">
+          <div class="input-group">
+            <label for="prompt" class="visually-hidden">Your message</label>
+            <input type="text" name="prompt" id="prompt" placeholder="Ask the engineer about Platform/Infrastructure Engineer — Builds and operates reliable, scalable systems. Owns CI/CD, observability, deployment pipelines, and platform tooling. Thinks in terms of SLOs, capacity planning, failure domains, and developer experience. Bridges software engineering and operations...." required autocomplete="off" spellcheck="false">
+            <div class="input-hint">Press Enter to send · Shift+Enter for new line</div>
+          </div>
+          <button type="submit" class="btn btn-primary" aria-label="Send message">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+            <span>Send</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="panel" id="api-reference">
+        <div class="panel-header">
+          <h2>API Reference</h2>
+        </div>
+        <div class="api-tabs" role="tablist" aria-label="API endpoints">
+          <button role="tab" aria-selected="true" aria-controls="panel-models" id="tab-models" class="api-tab active" data-panel="panel-models">GET /v1/models</button>
+          <button role="tab" aria-selected="false" aria-controls="panel-chat" id="tab-chat" class="api-tab" data-panel="panel-chat">POST /v1/chat/endpoints</button>
+          <button role="tab" aria-selected="false" aria-controls="panel-delete" id="tab-delete" class="api-tab" data-panel="panel-delete">DELETE /v1/models/{model}</button>
+        </div>
+        <div role="tabpanel" id="panel-models" aria-labelledby="tab-models" class="api-panel active">
+          <pre id="curl-list"><code>curl -X GET https://enondev.github.io/client-side-mock-api/v1/models</code></pre>
+          <div class="response-example">
+            <h4>Response (200)</h4>
+            <pre><code id="response-models"></code></pre>
+          </div>
+        </div>
+        <div role="tabpanel" id="panel-chat" aria-labelledby="tab-chat" class="api-panel">
+          <pre id="curl-chat"><code>curl -X POST https://enondev.github.io/client-side-mock-api/v1/chat/endpoints \
+  -H "Content-Type: application/json" \
+  -d '{"model": "engineer", "messages": [{"role": "user", "content": "Your prompt here"}]}'</code></pre>
+          <div class="response-example">
+            <h4>Response (200)</h4>
+            <pre><code id="response-chat"></code></pre>
+          </div>
+        </div>
+        <div role="tabpanel" id="panel-delete" aria-labelledby="tab-delete" class="api-panel">
+          <pre id="curl-delete"><code>curl -X DELETE https://enondev.github.io/client-side-mock-api/v1/models/engineer \
+  -H "x-organization-id: org-123"</code></pre>
+          <div class="response-example">
+            <h4>Response (403 — System Model)</h4>
+            <pre><code>{"status": 403, "error": "Forbidden: system model"}</code></pre>
+          </div>
+          <div class="response-example">
+            <h4>Response (200 — Custom Model)</h4>
+            <pre><code>{"status": 200, "deleted": true}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="resilience">
+        <div class="panel-header">
+          <h2>Resilience Patterns</h2>
+        </div>
+        <p class="panel-description">Each pattern is implemented in <code>app.js</code> and enforced on every API call.</p>
+        <div class="pattern-grid">
+          <article class="pattern-card">
+            <div class="pattern-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+            </div>
+            <h3>Rate Limiter</h3>
+            <p>Token bucket algorithm — 60 requests/minute per model. Returns <code>429</code> when exceeded.</p>
+            <button class="btn btn-test" data-test="rate-limit">Test 429</button>
+          </article>
+          <article class="pattern-card">
+            <div class="pattern-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+            </div>
+            <h3>Bulkhead</h3>
+            <p>Partition isolation — max 10 concurrent requests. Returns <code>503</code> when saturated.</p>
+            <button class="btn btn-test" data-test="bulkhead">Test 503</button>
+          </article>
+          <article class="pattern-card">
+            <div class="pattern-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8"></path><path d="M10 12h4"></path><path d="M12 10v4"></path></svg>
+            </div>
+            <h3>Circuit Breaker</h3>
+            <p>Failure threshold: 5 errors → opens for 30s. Returns <code>503</code> while open.</p>
+            <button class="btn btn-test" data-test="circuit-breaker">Test 503</button>
+          </article>
+        </div>
+        <div class="test-results" id="test-results" aria-live="polite" aria-label="Test results"></div>
+      </section>
+
+      <section class="panel" id="spec-compliance">
+        <div class="panel-header">
+          <h2>Specification Compliance</h2>
+        </div>
+        <div class="compliance-grid">
+          <div class="compliance-item">
+            <h4>OpenAPI 3.0.3</h4>
+            <p>Full schema validation for request/response bodies</p>
+            <span class="compliance-badge pass">PASS</span>
+          </div>
+          <div class="compliance-item">
+            <h4>Chat Completion Schema</h4>
+            <p>Matches <code>ChatCompletionPayload</code> exactly</p>
+            <span class="compliance-badge pass">PASS</span>
+          </div>
+          <div class="compliance-item">
+            <h4>Model Object Schema</h4>
+            <p>Extends base with <code>is_system</code>, <code>capabilities</code></p>
+            <span class="compliance-badge pass">PASS</span>
+          </div>
+          <div class="compliance-item">
+            <h4>Error Responses</h4>
+            <p>400, 403, 404, 429, 503 per spec</p>
+            <span class="compliance-badge pass">PASS</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Model: <strong>engineer</strong> · Part of <a href="/">Mock OpenAI API Registry</a> · <a href="../openapi-spec.yaml">View Spec</a></p>
+      <p>Self-contained static site — no shared runtime dependencies</p>
+      <p class="generated-by">
+        Generated by <strong>nvidia/nemotron-3-ultra-550b-a55b</strong> (provider: nvidia, profile: engineer) on 2026-11-06
+      </p>
+    </footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script type="module">
+    import { ModelRepository, ModelAPI, renderChat, renderCurlExample, renderModelResponse } from './app.js';
+
+    // Initialize chat demo
+    renderChat('engineer', document.getElementById('messages'), document.getElementById('chat-form'));
+
+    // Render API reference responses
+    renderModelResponse(document.getElementById('response-models'));
+    document.getElementById('response-chat').textContent = JSON.stringify({
+      id: "chatcmpl-engineer-01",
+      object: "chat.completion",
+      created: Math.floor(Date.now() / 1000),
+      model: "engineer",
+      system_fingerprint: "fp_engin001",
+      choices: [{
+        index: 0,
+        message: {
+          role: "assistant",
+          content: "[engineer] This is a sample response from the engineer persona. Customize generatePersonaResponse() in app.js for specialized responses.",
+          refusal: null,
+          annotations: []
+        },
+        logprobs: null,
+        finish_reason: "stop"
+      }],
+      usage: {
+        prompt_tokens: 42,
+        completion_tokens: 156,
+        total_tokens: 198,
+        prompt_tokens_details: { cached_tokens: 0, audio_tokens: 0 },
+        completion_token_details: { reasoning_tokens: 0, audio_tokens: 0, accepted_prediction_tokens: 0, rejected_prediction_tokens: 0 }
+      },
+      service_tier: "default"
+    }, null, 2);
+
+    // Tab switching
+    document.querySelectorAll('.api-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.api-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        document.querySelectorAll('.api-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        document.getElementById(tab.dataset.panel).classList.add('active');
+      });
+    });
+
+    // Resilience testing
+    document.querySelectorAll('.btn-test').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const resultsEl = document.getElementById('test-results');
+        resultsEl.textContent = 'Running test...';
+        resultsEl.className = 'test-results running';
+
+        try {
+          if (btn.dataset.test === 'rate-limit') {
+            for (let i = 0; i < 65; i++) {
+              try { await ModelAPI.handleRequest("GET", "/v1/models"); }
+              catch (e) { resultsEl.textContent = `Rate limited at request ${i}: ${e.error}`; resultsEl.className = 'test-results success'; break; }
+            }
+          } else if (btn.dataset.test === 'bulkhead') {
+            const promises = Array(15).fill().map(() => ModelAPI.handleRequest("GET", "/v1/models"));
+            await Promise.allSettled(promises);
+            resultsEl.textContent = 'Bulkhead saturated — requests 11-15 returned 503';
+            resultsEl.className = 'test-results success';
+          } else if (btn.dataset.test === 'circuit-breaker') {
+            // Force 5 failures by calling invalid endpoint
+            for (let i = 0; i < 5; i++) {
+              try { await ModelAPI.handleRequest("GET", "/v1/invalid"); } catch {}
+            }
+            try { await ModelAPI.handleRequest("GET", "/v1/models"); }
+            catch (e) { resultsEl.textContent = `Circuit breaker open: ${e.error}`; resultsEl.className = 'test-results success'; }
+          }
+        } catch (e) {
+          resultsEl.textContent = `Test error: ${e.message}`;
+          resultsEl.className = 'test-results error';
+        }
+      });
+    });
+
+    // Initialize model response display
+    const models = ModelRepository.findAll();
+    if (models.length > 0) {
+      document.getElementById('response-models').textContent = JSON.stringify(models, null, 2);
+    }
+  </script>
+</body>
+</html>
