@@ -1,0 +1,68 @@
+# ==========================================
+# Operating System Files
+# ==========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.lnk
+
+# ==========================================
+# Common Build & Dependency Directories
+# ==========================================
+node_modules/
+bower_components/
+build/
+dist/
+out/
+target/
+bin/
+obj/
+__pycache__
+
+# ==========================================
+# Logs and Databases
+# ==========================================
+*.log
+*.sql
+*.sqlite
+*.db
+
+# ==========================================
+# Environment Variables & Secrets (CRITICAL)
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.cert
+
+# ==========================================
+# Popular IDEs and Editors
+# ==========================================
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# IntelliJ / WebStorm / PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ==========================================
+# Local Dev Workspaces
+# ==========================================
+.worktrees/
+worktrees/
+_worktrees/
+.claude/
+.hermes/

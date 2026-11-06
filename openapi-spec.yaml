@@ -1,0 +1,343 @@
+openapi: 3.0.3
+info:
+  title: Mock OpenAI API — Model Registry
+  version: 1.0.0
+  description: |
+    Self-contained static sites implementing the OpenAI-compatible API specification.
+    Each model is a complete, deployable artifact with its own API logic, styling, and resilience patterns.
+    See AGENTS.md for the reproducible generation process.
+servers:
+  - url: https://enondev.github.io/client-side-mock-api
+    description: Production server
+  - url: http://localhost:8765
+    description: Local development server
+paths:
+  /v1/models:
+    get:
+      summary: Retrieve all models
+      operationId: listModels
+      responses:
+        '200':
+          description: A JSON array of Model objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Model'
+        '429':
+          description: Too many requests (rate limited)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service unavailable (circuit breaker open or bulkhead saturated)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/chat/endpoints:
+    post:
+      summary: Create chat completion
+      operationId: createChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Chat completion response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+        '400':
+          description: Bad request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Model not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many requests (rate limited)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service unavailable (circuit breaker open or bulkhead saturated)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/models/{model}:
+    delete:
+      summary: Delete a model
+      operationId: deleteModel
+      parameters:
+        - name: model
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The model identifier
+        - name: x-organization-id
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Organization identifier for authorization
+      responses:
+        '200':
+          description: Model deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+                    example: true
+        '403':
+          description: Forbidden (system model cannot be deleted)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Model not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many requests (rate limited)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service unavailable (circuit breaker open or bulkhead saturated)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Model:
+      type: object
+      required:
+        - id
+        - object
+        - created
+        - owned_by
+      properties:
+        id:
+          type: string
+          description: Unique model identifier
+          example: architect
+        object:
+          type: string
+          enum: [model]
+          example: model
+        created:
+          type: integer
+          format: int64
+          description: Unix timestamp of model creation
+          example: 1730812800
+        owned_by:
+          type: string
+          description: Organization that owns the model
+          example: mock-openai-api
+        is_system:
+          type: boolean
+          description: Whether this is a built-in system model (cannot be deleted)
+          example: true
+        capabilities:
+          type: array
+          items:
+            type: string
+          description: Model capabilities/tags
+          example: ["architecture", "system-design", "adrs"]
+        description:
+          type: string
+          description: Human-readable model description
+          example: "System architect persona — designs scalable architectures..."
+    ChatCompletionRequest:
+      type: object
+      required:
+        - model
+        - messages
+      properties:
+        model:
+          type: string
+          description: Model identifier
+          example: architect
+        messages:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          description: Conversation messages
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+          default: 1
+          description: Sampling temperature
+        max_tokens:
+          type: integer
+          minimum: 1
+          description: Maximum tokens in completion
+        stream:
+          type: boolean
+          default: false
+          description: Whether to stream responses (not implemented in mock)
+    ChatMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant]
+          example: user
+        content:
+          type: string
+          example: "Design a scalable API gateway"
+        name:
+          type: string
+          description: Optional name for participant
+    ChatCompletionResponse:
+      type: object
+      required:
+        - id
+        - object
+        - created
+        - model
+        - choices
+        - usage
+      properties:
+        id:
+          type: string
+          example: chatcmpl-architect-01
+        object:
+          type: string
+          enum: [chat.completion]
+          example: chat.completion
+        created:
+          type: integer
+          format: int64
+          example: 1730812800
+        model:
+          type: string
+          example: architect
+        system_fingerprint:
+          type: string
+          example: fp_arch001
+        choices:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Choice'
+        usage:
+          $ref: '#/components/schemas/Usage'
+        service_tier:
+          type: string
+          enum: [default]
+          example: default
+    Choice:
+      type: object
+      required:
+        - index
+        - message
+        - finish_reason
+      properties:
+        index:
+          type: integer
+          example: 0
+        message:
+          $ref: '#/components/schemas/ChatMessage'
+        logprobs:
+          type: object
+          nullable: true
+          example: null
+        finish_reason:
+          type: string
+          enum: [stop, length, tool_calls, content_filter]
+          example: stop
+    Usage:
+      type: object
+      required:
+        - prompt_tokens
+        - completion_tokens
+        - total_tokens
+      properties:
+        prompt_tokens:
+          type: integer
+          example: 42
+        completion_tokens:
+          type: integer
+          example: 156
+        total_tokens:
+          type: integer
+          example: 198
+        prompt_tokens_details:
+          $ref: '#/components/schemas/PromptTokensDetails'
+        completion_token_details:
+          $ref: '#/components/schemas/CompletionTokenDetails'
+    PromptTokensDetails:
+      type: object
+      properties:
+        cached_tokens:
+          type: integer
+          example: 0
+        audio_tokens:
+          type: integer
+          example: 0
+    CompletionTokenDetails:
+      type: object
+      properties:
+        reasoning_tokens:
+          type: integer
+          example: 0
+        audio_tokens:
+          type: integer
+          example: 0
+        accepted_prediction_tokens:
+          type: integer
+          example: 0
+        rejected_prediction_tokens:
+          type: integer
+          example: 0
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 429
+        error:
+          type: string
+          example: "Rate limit exceeded: 60 requests/minute"
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-organization-id
+      description: Organization identifier for model deletion
+security:
+  - ApiKeyAuth: []
+tags:
+  - name: Models
+    description: Model management endpoints
+  - name: Chat
+    description: Chat completion endpoints
